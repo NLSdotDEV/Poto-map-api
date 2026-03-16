@@ -7,10 +7,14 @@ import { AuthModule } from './auth/auth.module';
 @Module({
   imports: [
     TypeOrmModule.forRoot({
-      type: 'sqlite',
+      type: 'mysql',
+      host: 'localhost',
+      username: 'samuel',
+      port: 3306,
       synchronize: true,
-      database: 'db.sqlite',
+      database: 'poto_map',
       autoLoadEntities: true,
+      entities: [__dirname + '/**/*.entity{.ts,.js}'],
     }),
     AuthModule,
   ],

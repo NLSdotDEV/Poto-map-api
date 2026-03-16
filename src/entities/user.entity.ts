@@ -8,6 +8,7 @@ import {
   OneToMany,
 } from 'typeorm';
 import { Review } from './review.entity';
+import { UserRole } from 'src/enum/user_role_enum';
 
 @Entity('users')
 export class User extends BaseEntity {
@@ -20,13 +21,28 @@ export class User extends BaseEntity {
   @Column({ type: 'varchar' })
   lastName: string;
 
+  @Column({ type: 'varchar', unique: true })
+  username: string;
+
+  @Column({ type: 'enum', enum: UserRole, default: UserRole.USER })
+  role: UserRole;
+
+  @Column({ type: 'varchar', nullable: true, unique: true })
+  email: string | null;
+
+  @Column({ type: 'varchar', unique: true })
+  phone: string;
+
   @Column({ type: 'varchar' })
-  email: string;
+  country: string;
+
+  @Column({ type: 'varchar' })
+  countryCode: string;
 
   @Column({ type: 'varchar', select: false })
   password: string;
 
-  @OneToMany(() => Review, (review) => review.user )
+  @OneToMany(() => Review, (review) => review.user)
   reviews: Review[];
 
   @CreateDateColumn()
@@ -34,4 +50,13 @@ export class User extends BaseEntity {
 
   @UpdateDateColumn()
   updatedAt: Date;
+
+  getFullPhone() {
+    const phone = this.countryCode + this.phone;
+    if (phone.startsWith('+')) {
+      return phone;
+    }
+
+    return '+' + phone;
+  }
 }
