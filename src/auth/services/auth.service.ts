@@ -69,8 +69,8 @@ export class AuthService {
    * @returns {Promise<AuthResponse>} The JWT session tokens
    * @description Finalizes authentication by validating the OTP and issuing tokens.
    */
-  async verifyOtp(otp: string): Promise<AuthResponse> {
-    const user = await this.otpService.validateOtp(otp);
+  async verifyOtp(phoneNumber: string, otp: string): Promise<AuthResponse> {
+    const user = await this.otpService.validateOtp(phoneNumber, otp);
     return this.generateTokens(user);
   }
 
@@ -83,7 +83,7 @@ export class AuthService {
   async refreshToken(refreshToken: string): Promise<AuthResponse> {
     try {
       const payload = await this.jwtService.verifyAsync(refreshToken, {
-        secret: process.env.JWT_SECRET,
+        secret: JwtConstants.refreshSecret,
       });
 
       // Special fetch to select the hidden refresh_token field
@@ -108,11 +108,11 @@ export class AuthService {
 
   /**
    * @method logout
-   * @param {User} user - The currently authenticated user
+   * @param {string} userId - The id of the currently authenticated user
    * @description Revokes the session by clearing the refresh token from the database.
    */
-  async logout(user: User) {
-    await this.userService.clearRefreshToken(user);
+  async logout(userId: string) {
+    await this.userService.clearRefreshToken(userId);
   }
 
   /**
@@ -126,8 +126,12 @@ export class AuthService {
     const payload = { sub: user.id, phone: user.phone_number, role: user.role };
 
     const [accessToken, refreshToken] = await Promise.all([
-      this.jwtService.signAsync(payload),
       this.jwtService.signAsync(payload, {
+        secret: JwtConstants.accessSecret,
+        expiresIn: JwtConstants.expiresIn,
+      }),
+      this.jwtService.signAsync(payload, {
+        secret: JwtConstants.refreshSecret,
         expiresIn: JwtConstants.refreshTokenExpiresIn,
       }),
     ]);

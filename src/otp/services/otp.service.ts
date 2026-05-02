@@ -43,8 +43,8 @@ export class OtpService {
    * @throws {BadRequestException} If the OTP is invalid or expired
    * @description Validates an OTP and updates the user's verification state.
    */
-  async validateOtp(otp: string) {
-    const user = await this.otpRepository.validateOtp(otp);
+  async validateOtp(phoneNumber: string, otp: string) {
+    const user = await this.otpRepository.validateOtp(phoneNumber, otp);
 
     if (!user) {
       throw new BadRequestException('invalid otp provided');

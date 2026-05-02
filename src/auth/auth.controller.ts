@@ -1,13 +1,19 @@
 import { Body, Controller, Post, Res, UseGuards, Req } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import { Public } from './decorators/public.decorator';
 import { LoginDto } from './dto/login.dto';
 import { AuthService } from './services/auth.service';
 import { SignupDto } from './dto/signup.dto';
 import { VerifyOtpDto } from './dto/verify_otp.dto';
-import type { Response } from 'express';
+import type { Request, Response } from 'express';
 import { RefreshTokenGuard } from './guards/refresh_token.guard';
 import { JwtConstants } from './contants';
-import { User } from 'src/user/entities/user.entity';
+import type { JwtPayload } from './interfaces/jwt_payload.interface';
+
+type AuthedRequest = Request & {
+  user: JwtPayload;
+  refreshToken?: string;
+};
 
 /**
  * @class AuthController
@@ -24,11 +30,12 @@ export class AuthController {
    */
   @Post('login')
   @Public()
+  @Throttle({ default: { limit: 5, ttl: 60_000 } })
   async login(@Body() credentials: LoginDto) {
     const response = await this.authService.login(credentials);
     return {
       success: response,
-      message: `otp code sent to +225${credentials.phone_number}`,
+      message: `otp code sent to ${credentials.phone_number}`,
     };
   }
 
@@ -39,11 +46,12 @@ export class AuthController {
    */
   @Post('signup')
   @Public()
+  @Throttle({ default: { limit: 5, ttl: 60_000 } })
   async signup(@Body() data: SignupDto) {
     const response = await this.authService.signup(data);
     return {
       success: response,
-      message: `otp code sent to +225${data.phone_number}`,
+      message: `otp code sent to ${data.phone_number}`,
     };
   }
 
@@ -55,11 +63,12 @@ export class AuthController {
    */
   @Post('verify-otp')
   @Public()
+  @Throttle({ default: { limit: 5, ttl: 60_000 } })
   async verifyOtp(
     @Body() data: VerifyOtpDto,
     @Res({ passthrough: true }) res: Response,
   ) {
-    const result = await this.authService.verifyOtp(data.otp);
+    const result = await this.authService.verifyOtp(data.phone_number, data.otp);
 
     // Set refresh token in secure HTTP-only cookie
     res.cookie('refresh_token', result.refresh_token, {
@@ -82,9 +91,13 @@ export class AuthController {
    * @description Protected endpoint to renew an expired access token using a refresh token.
    */
   @Post('refresh')
+  @Public()
   @UseGuards(RefreshTokenGuard)
-  async refresh(@Req() req: any, @Res({ passthrough: true }) res: Response) {
-    const result = await this.authService.refreshToken(req.refreshToken);
+  async refresh(
+    @Req() req: AuthedRequest,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const result = await this.authService.refreshToken(req.refreshToken!);
 
     res.cookie('refresh_token', result.refresh_token, {
       httpOnly: true,
@@ -106,8 +119,11 @@ export class AuthController {
    * @description Protected endpoint to revoke a session and clear cookies.
    */
   @Post('logout')
-  async logout(@Req() req: any, @Res({ passthrough: true }) res: Response) {
-    await this.authService.logout(req.user as User);
+  async logout(
+    @Req() req: AuthedRequest,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    await this.authService.logout(req.user.sub);
     res.clearCookie('refresh_token');
     return { message: 'Logged out successfully' };
   }

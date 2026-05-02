@@ -22,13 +22,13 @@ export class OtpGeneratorService {
 
     // if user don't have a valid otp stored, generate a new one with crypto
     if (!hasValidOtp) {
-      let otp = randomInt(10000, 99000).toString();
+      let otp = randomInt(10000, 100000).toString();
       let exists = await this.otpRepo.exists({
         where: { otp },
       });
 
       while (exists) {
-        otp = randomInt(10000, 99000).toString();
+        otp = randomInt(10000, 100000).toString();
         exists = await this.otpRepo.exists({
           where: { otp },
         });

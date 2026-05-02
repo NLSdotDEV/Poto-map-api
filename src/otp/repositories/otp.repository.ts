@@ -1,10 +1,8 @@
 import { BaseRepository } from 'src/common/repositories/base.repository';
 import { Otp } from '../entities/otp.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { LessThan, MoreThan, Repository } from 'typeorm';
+import { MoreThan, Repository } from 'typeorm';
 import { OtpStatus } from '../enums/otp.status.enum';
-import { randomInt } from 'crypto';
-import { BadRequestException } from '@nestjs/common';
 
 export class OtpRepository extends BaseRepository<Otp> {
   constructor(
@@ -37,12 +35,13 @@ export class OtpRepository extends BaseRepository<Otp> {
     });
   }
 
-  async validateOtp(otp: string) {
+  async validateOtp(phoneNumber: string, otp: string) {
     const foundOtp = await this.repo.findOne({
       where: {
         otp,
         status: OtpStatus.ACTIVE,
         expires_at: MoreThan(new Date()),
+        user: { phone_number: phoneNumber },
       },
       relations: ['user'],
     });

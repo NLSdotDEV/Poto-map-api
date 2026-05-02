@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
-import { JwtConstants } from './contants';
 import { AuthController } from './auth.controller';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtGuard } from './guards/jwt.guard';
@@ -9,15 +8,7 @@ import { AuthService } from './services/auth.service';
 import { OtpModule } from 'src/otp/otp.module';
 
 @Module({
-  imports: [
-    JwtModule.register({
-      global: true,
-      secret: process.env.JWT_SECRET,
-      signOptions: { expiresIn: JwtConstants.expiresIn },
-    }),
-    UserModule,
-    OtpModule,
-  ],
+  imports: [JwtModule.register({ global: true }), UserModule, OtpModule],
   controllers: [AuthController],
   providers: [
     {

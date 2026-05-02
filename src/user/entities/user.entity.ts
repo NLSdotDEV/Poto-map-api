@@ -24,8 +24,8 @@ export class User extends BaseEntity {
   @Column({ type: 'bool', default: false })
   is_verified: boolean;
 
-  @Column({ type: 'datetime', select: false })
-  verified_at: Date;
+  @Column({ type: 'datetime', nullable: true, select: false })
+  verified_at: Date | null;
 
   @OneToMany(() => Otp, (otp) => otp.user)
   otps: Otp[];

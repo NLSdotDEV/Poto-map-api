@@ -19,15 +19,15 @@ export class UserRepository extends BaseRepository<User> {
 
   /**
    * @method clearRefreshToken
-   * @param {User} user - The user whose session is being revoked
+   * @param {string} userId - The id of the user whose session is being revoked
    * @description Clears the persistent refresh token to effectively log out the user across devices.
    */
-  async clearRefreshToken(user: User) {
-    if (!(await this.exists({ where: { id: user.id } }))) {
+  async clearRefreshToken(userId: string) {
+    if (!(await this.exists({ where: { id: userId } }))) {
       return null;
     }
     await this.update(
-      { id: user.id },
+      { id: userId },
       {
         refresh_token: null,
       },

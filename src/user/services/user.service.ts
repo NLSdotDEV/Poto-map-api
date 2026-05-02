@@ -111,11 +111,11 @@ export class UserService {
 
   /**
    * @method clearRefreshToken
-   * @param {User} user - The user to logout
+   * @param {string} userId - The id of the user to logout
    * @description Revokes the session by clearing the refresh token.
    */
-  async clearRefreshToken(user: User) {
-    await this.repo.clearRefreshToken(user);
+  async clearRefreshToken(userId: string) {
+    await this.repo.clearRefreshToken(userId);
   }
 
   /**
