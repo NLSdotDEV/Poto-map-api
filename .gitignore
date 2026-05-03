@@ -3,6 +3,10 @@
 /node_modules
 /build
 
+# generated artifacts
+lint_results.txt
+*.sqlite
+
 # Logs
 logs
 *.log
